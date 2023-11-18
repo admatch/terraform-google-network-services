@@ -1,7 +1,13 @@
+variable "bucket_name" {
+  type          = string
+  description   = "The bucket name that network services will use as backend"
+  nullable      = true
+}
+
 
 variable "cloud_function_name" {
   type          = string
-  description   = "The cloud function name of the network services will be used for a backend function"
+  description   = "The cloud function name that network services will use as backend"
   nullable      = true
 }
 
