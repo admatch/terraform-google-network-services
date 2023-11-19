@@ -92,6 +92,6 @@ resource "google_compute_backend_service" "backend_service" {
   timeout_sec = 30
 
   backend {
-    group = google_compute_region_network_endpoint_group.network_endpoint_group.id[count.index]
+    group = google_compute_region_network_endpoint_group.network_endpoint_group[0].id
   }
 }
