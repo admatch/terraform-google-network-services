@@ -35,16 +35,17 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
 
 # GCP URL MAP
 resource "google_compute_url_map" "url_map" {
+  count           = var.bucket_name || var.cloud_function_name ? 1 : 0 
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
-  default_service = google_compute_backend_service.backend_service.id
+  default_service = var.bucket_name ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
 }
 
 # GCP target proxy
 resource "google_compute_target_https_proxy" "https_proxy" {
   name             = "hp-${var.environment}-${var.project_name}"
   project          = var.project
-  url_map          = google_compute_url_map.url_map.id
+  url_map          = google_compute_url_map.url_map[0].id
   ssl_certificates = [google_compute_managed_ssl_certificate.ssl_certificate.id]
 }
 
