@@ -35,10 +35,10 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
 
 # GCP URL MAP
 resource "google_compute_url_map" "url_map" {
-  count           = var.bucket_name || var.cloud_function_name ? 1 : 0 
+  count           = var.bucket_name != null || var.cloud_function_name != null ? 1 : 0 
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
-  default_service = var.bucket_name ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+  default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
 }
 
 # GCP target proxy
@@ -62,7 +62,7 @@ resource "google_compute_global_forwarding_rule" "default" {
 
 # Add the bucket as a CDN backend
 resource "google_compute_backend_bucket" "backend_bucket" {
-  count       = var.bucket_name ? 1 : 0 
+  count       = var.bucket_name != null ? 1 : 0 
   name        = "bb-${var.environment}-${var.project_name}-cdn"
   project     = var.project
   description = "Contains files needed for the cdn"
@@ -72,7 +72,7 @@ resource "google_compute_backend_bucket" "backend_bucket" {
 
 # Add Network Endpoint Group to register serverless function as backend
 resource "google_compute_region_network_endpoint_group" "network_endpoint_group" {
-  count                 = var.cloud_function_name ? 1 : 0 
+  count                 = var.cloud_function_name != null ? 1 : 0 
   provider              = google-beta
   project               = var.project
   name                  = "neg-${var.project_name}"
@@ -85,7 +85,7 @@ resource "google_compute_region_network_endpoint_group" "network_endpoint_group"
 
 # Keep track of eligible backend
 resource "google_compute_backend_service" "backend_service" {
-  count       = var.cloud_function_name ? 1 : 0 
+  count       = var.cloud_function_name != null ? 1 : 0 
   name        = "bs-${var.environment}-${var.project_name}"
   project     = var.project
   protocol    = "HTTP"
