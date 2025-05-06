@@ -24,5 +24,6 @@ module "network_services" {
   project                  = local.env_project_id
   project_name             = local.project_suffix
   region                   = var.region
+  path                     = "/v1/api"
 }
 ```

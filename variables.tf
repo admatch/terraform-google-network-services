@@ -19,6 +19,13 @@ variable "dns_name" {
   nullable      = false
 }
 
+variable "path" {
+  type          = string
+  description   = "Optional path to route to the backend service"
+  nullable      = true
+  default       = null
+}
+
 variable "environment" {
   type          = string
   description   = "The name of the environment e.g. prod"

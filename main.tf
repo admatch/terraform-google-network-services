@@ -39,6 +39,20 @@ resource "google_compute_url_map" "url_map" {
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
   default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+
+  dynamic "path_matcher" {
+    for_each = var.path != null && var.path != "" ? [var.path] : []
+
+    content {
+      name            = "backend-paths"
+      default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+
+      path_rule {
+        paths   = [path_matcher.value]
+        service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+      }
+    }
+  }
 }
 
 # GCP target proxy
