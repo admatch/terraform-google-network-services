@@ -29,7 +29,7 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
   name     = "cert-${var.environment}-${var.project_name}"
   project  = var.project
   managed {
-    domains = [google_dns_record_set.dns_record_set.name]
+    domains = var.hostnames != null ? var.hostnames : [google_dns_record_set.dns_record_set.name]
   }
 }
 
