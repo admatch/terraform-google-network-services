@@ -15,7 +15,7 @@ variable "cloud_function_name" {
 
 variable "dns_name" {
   type          = string
-  description   = "The dns name for the certificate without the trailing dot (.)"
+  description   = "The dns name for the zone without the trailing dot (.)"
   nullable      = false
 }
 
@@ -47,4 +47,10 @@ variable "region" {
   type          = string
   description   = "The region where the network services will be created e.g. us-west1"
   nullable      = false
+}
+
+variable "hostnames" {
+  type          = list(string)
+  description   = "The hostnames for the certificate"
+  nullable      = true
 }
