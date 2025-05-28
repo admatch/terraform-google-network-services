@@ -54,3 +54,13 @@ variable "hostnames" {
   description   = "The hostnames for the certificate"
   nullable      = true
 }
+
+variable "url_rewrite_rules" {
+  description = "List of rewrite rules, each with list of paths and a path prefix rewrite string"
+  type = list(object({
+    paths               = list(string)
+    path_prefix_rewrite = string
+  }))
+  default  = []
+  nullable = true
+}
