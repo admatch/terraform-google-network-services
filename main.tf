@@ -1,3 +1,7 @@
+locals {
+  default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+}
+
 # Reserve an external IP
 resource "google_compute_global_address" "external_ip_address" {
   name    = "ga-${var.environment}-${var.project_name}-lb-ip"
@@ -38,7 +42,7 @@ resource "google_compute_url_map" "url_map" {
   count           = var.bucket_name != null || var.cloud_function_name != null ? 1 : 0 
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
-  default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+  default_service = local.default_service
 }
 
 # GCP target proxy
