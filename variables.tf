@@ -53,6 +53,7 @@ variable "hostnames" {
   type          = list(string)
   description   = "The hostnames for the certificate"
   nullable      = true
+  default       = null
 }
 
 variable "url_rewrite_rules" {
