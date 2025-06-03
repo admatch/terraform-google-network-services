@@ -20,6 +20,10 @@ module "network_services" {
   cloud_function_name      = module.my_function.function_name
   dns_name                 = "www.example.com"
   hostnames                = ["example.com", "www.example.com"]
+  url_rewrite_rules        = [{
+                                paths               = ["/help"]
+                                path_prefix_rewrite = "/help.html"
+                            }]
   environment              = var.environment
   environment_code         = substr(var.environment, 0, 1)
   project                  = local.env_project_id

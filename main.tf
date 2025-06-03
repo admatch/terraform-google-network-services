@@ -1,3 +1,9 @@
+locals {
+  default_service   = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+  hostnames           = var.hostnames != null ? var.hostnames : [google_dns_record_set.dns_record_set.name]
+  path_matcher_name = "pm-${var.environment}-${var.project_name}"
+}
+
 # Reserve an external IP
 resource "google_compute_global_address" "external_ip_address" {
   name    = "ga-${var.environment}-${var.project_name}-lb-ip"
@@ -29,7 +35,7 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
   name     = "cert-${var.environment}-${var.project_name}"
   project  = var.project
   managed {
-    domains = var.hostnames != null ? var.hostnames : [google_dns_record_set.dns_record_set.name]
+    domains = local.hostnames
   }
 }
 
@@ -38,7 +44,38 @@ resource "google_compute_url_map" "url_map" {
   count           = var.bucket_name != null || var.cloud_function_name != null ? 1 : 0 
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
-  default_service = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
+  default_service = local.default_service
+
+  dynamic "host_rule" {
+    for_each = length(var.url_rewrite_rules) > 0 ? [1] : []
+    content {
+      hosts        = local.hostnames
+      path_matcher = local.path_matcher_name
+    }
+  }
+
+  dynamic "path_matcher" {
+    for_each = length(var.url_rewrite_rules) > 0 ? [1] : []
+    content {
+      name            = local.path_matcher_name
+      default_service = local.default_service
+
+      dynamic "path_rule" {
+        for_each = var.url_rewrite_rules
+          content {
+            paths   = path_rule.value.paths
+            service = local.default_service
+
+            route_action {
+              url_rewrite {
+                path_prefix_rewrite = path_rule.value.path_prefix_rewrite
+              }
+            }
+          }
+      }
+    }
+  }
+
 }
 
 # GCP target proxy
