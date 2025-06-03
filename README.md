@@ -21,7 +21,7 @@ module "network_services" {
   dns_name                 = "www.example.com"
   hostnames                = ["example.com", "www.example.com"]
   url_rewrite_rules        = [{
-                                paths               = ["/help", "/help/"]
+                                paths               = ["/help"]
                                 path_prefix_rewrite = "/help.html"
                             }]
   environment              = var.environment

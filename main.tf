@@ -1,6 +1,6 @@
 locals {
   default_service   = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
-  domains           = var.hostnames != null ? var.hostnames : [google_dns_record_set.dns_record_set.name]
+  hostnames           = var.hostnames != null ? var.hostnames : [google_dns_record_set.dns_record_set.name]
   path_matcher_name = "pm-${var.environment}-${var.project_name}"
 }
 
@@ -35,7 +35,7 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
   name     = "cert-${var.environment}-${var.project_name}"
   project  = var.project
   managed {
-    domains = local.domains
+    domains = local.hostnames
   }
 }
 
@@ -49,7 +49,7 @@ resource "google_compute_url_map" "url_map" {
   dynamic "host_rule" {
     for_each = length(var.url_rewrite_rules) > 0 ? [1] : []
     content {
-      hosts        = local.domains
+      hosts        = local.hostnames
       path_matcher = local.path_matcher_name
     }
   }
