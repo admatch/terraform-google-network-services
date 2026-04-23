@@ -13,6 +13,13 @@ variable "cloud_function_name" {
   default       = null
 }
 
+variable "cloud_run_service_name" {
+  type        = string
+  description = "If set, uses Cloud Run (Gen2 Cloud Functions backend). If null, uses Cloud Function (Gen1)."
+  nullable    = true
+  default     = null
+}
+
 variable "dns_name" {
   type          = string
   description   = "The dns name for the zone without the trailing dot (.)"

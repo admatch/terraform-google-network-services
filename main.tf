@@ -109,14 +109,31 @@ resource "google_compute_backend_bucket" "backend_bucket" {
 
 # Add Network Endpoint Group to register serverless function as backend
 resource "google_compute_region_network_endpoint_group" "network_endpoint_group" {
-  count                 = var.cloud_function_name != null ? 1 : 0 
+  count                 = var.cloud_function_name != null || var.cloud_run_service_name != null ? 1 : 0 
   provider              = google-beta
   project               = var.project
   name                  = "neg-${var.project_name}"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
-  cloud_function {
-    function = var.cloud_function_name
+
+  # -----------------------
+  # GEN 2 (Cloud Run backend)
+  # -----------------------
+  dynamic "cloud_run" {
+    for_each = var.cloud_run_service_name != null ? [1] : []
+    content {
+      service = var.cloud_run_service_name
+    }
+  }
+
+  # -----------------------
+  # GEN 1 (Cloud Function backend)
+  # -----------------------
+  dynamic "cloud_function" {
+    for_each = var.cloud_function_name == null ? [1] : []
+    content {
+      function = var.cloud_function_name
+    }
   }
 }
 
