@@ -111,7 +111,7 @@ resource "google_compute_region_network_endpoint_group" "network_endpoint_group_
   count                 = var.cloud_function_name != null && var.cloud_run_service_name == null ? 1 : 0
   provider              = google-beta
   project               = var.project
-  name                  = "neg-${var.project_name}"
+  name                  = "neg-${var.project_name}-gen1"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
 
@@ -125,7 +125,7 @@ resource "google_compute_region_network_endpoint_group" "network_endpoint_group_
   count                 = var.cloud_run_service_name != null && var.cloud_function_name == null ? 1 : 0
   provider              = google-beta
   project               = var.project
-  name                  = "neg-${var.project_name}"
+  name                  = "neg-${var.project_name}-gen2"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
 
@@ -143,9 +143,13 @@ resource "google_compute_backend_service" "backend_service" {
   port_name   = "http"
   timeout_sec = 30
 
-  backend {
-    group = var.cloud_run_service_name != null ?
-      google_compute_region_network_endpoint_group.network_endpoint_group_gen2[0].id :
-      google_compute_region_network_endpoint_group.network_endpoint_group_gen1[0].id
+  dynamic "backend" {
+    for_each = var.cloud_run_service_name != null ?
+      google_compute_region_network_endpoint_group.network_endpoint_group_gen2 :
+      google_compute_region_network_endpoint_group.network_endpoint_group_gen1
+
+    content {
+      group = backend.value.id
+    }
   }
 }
