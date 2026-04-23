@@ -106,33 +106,31 @@ resource "google_compute_backend_bucket" "backend_bucket" {
   enable_cdn  = true
 }
 
-# Add Network Endpoint Group to register serverless function as backend
-resource "google_compute_region_network_endpoint_group" "network_endpoint_group" {
-  count                 = var.cloud_function_name != null || var.cloud_run_service_name != null ? 1 : 0 
+# Add Network Endpoint Group to register serverless gen 1 function as backend
+resource "google_compute_region_network_endpoint_group" "network_endpoint_group_gen1" {
+  count                 = var.cloud_function_name != null && var.cloud_run_service_name == null ? 1 : 0
   provider              = google-beta
   project               = var.project
   name                  = "neg-${var.project_name}"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
 
-  # -----------------------
-  # GEN 2 (Cloud Run backend)
-  # -----------------------
-  dynamic "cloud_run" {
-    for_each = var.cloud_run_service_name != null ? [1] : []
-    content {
-      service = var.cloud_run_service_name
-    }
+  cloud_function {
+    function = var.cloud_function_name
   }
+}
 
-  # -----------------------
-  # GEN 1 (Cloud Function backend)
-  # -----------------------
-  dynamic "cloud_function" {
-    for_each = var.cloud_function_name == null ? [1] : []
-    content {
-      function = var.cloud_function_name
-    }
+# Add Network Endpoint Group to register serverless gen 2 function as backend
+resource "google_compute_region_network_endpoint_group" "network_endpoint_group_gen2" {
+  count                 = var.cloud_run_service_name != null && var.cloud_function_name == null ? 1 : 0
+  provider              = google-beta
+  project               = var.project
+  name                  = "neg-${var.project_name}"
+  network_endpoint_type = "SERVERLESS"
+  region                = var.region
+
+  cloud_run {
+    service = var.cloud_run_service_name
   }
 }
 
@@ -146,6 +144,8 @@ resource "google_compute_backend_service" "backend_service" {
   timeout_sec = 30
 
   backend {
-    group = google_compute_region_network_endpoint_group.network_endpoint_group[0].id
+    group = var.cloud_run_service_name != null ?
+      google_compute_region_network_endpoint_group.network_endpoint_group_gen2[0].id :
+      google_compute_region_network_endpoint_group.network_endpoint_group_gen1[0].id
   }
 }
