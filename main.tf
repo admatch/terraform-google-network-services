@@ -1,6 +1,9 @@
 locals {
   default_service   = var.bucket_name != null ? google_compute_backend_bucket.backend_bucket[0].self_link : google_compute_backend_service.backend_service[0].id
   path_matcher_name = "pm-${var.environment}-${var.project_name}"
+  neg_gen1          = google_compute_region_network_endpoint_group.network_endpoint_group_gen1[*]
+  neg_gen2          = google_compute_region_network_endpoint_group.network_endpoint_group_gen2[*]
+  selected_neg      = var.cloud_run_service_name != null ? local.neg_gen2 : local.neg_gen1
 }
 
 # Reserve an external IP
@@ -144,9 +147,7 @@ resource "google_compute_backend_service" "backend_service" {
   timeout_sec = 30
 
   dynamic "backend" {
-    for_each = var.cloud_run_service_name != null ?
-      google_compute_region_network_endpoint_group.network_endpoint_group_gen2 :
-      google_compute_region_network_endpoint_group.network_endpoint_group_gen1
+    for_each = local.selected_neg
 
     content {
       group = backend.value.id
