@@ -40,7 +40,7 @@ resource "google_compute_managed_ssl_certificate" "ssl_certificate" {
 
 # GCP URL MAP
 resource "google_compute_url_map" "url_map" {
-  count           = var.bucket_name != null || var.cloud_function_name != null ? 1 : 0 
+  count           = var.bucket_name != null || var.cloud_function_name != null || var.cloud_run_service_name != null ? 1 : 0 
   name            = "um-${var.environment}-${var.project_name}"
   project         = var.project
   default_service = local.default_service
@@ -138,7 +138,7 @@ resource "google_compute_region_network_endpoint_group" "network_endpoint_group"
 
 # Keep track of eligible backend
 resource "google_compute_backend_service" "backend_service" {
-  count       = var.cloud_function_name != null ? 1 : 0 
+  count       = var.cloud_function_name != null || var.cloud_run_service_name != null ? 1 : 0  
   name        = "bs-${var.environment}-${var.project_name}"
   project     = var.project
   protocol    = "HTTP"
